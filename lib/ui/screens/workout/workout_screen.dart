@@ -49,6 +49,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
         subtitle: 'Stay consistent, stay strong',
         actions: [
           IconButton(
+            tooltip: 'View workout history', 
             icon: const Icon(Iconsax.chart),
             onPressed: () {
               context.router.push(WorkoutHistoryRoute());
