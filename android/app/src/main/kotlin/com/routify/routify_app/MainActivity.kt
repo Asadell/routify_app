@@ -1,4 +1,4 @@
-package com.example.routify_app
+package com.routify.routify_app
 
 import io.flutter.embedding.android.FlutterActivity
 
