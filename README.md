@@ -73,7 +73,7 @@ A modern, feature-rich daily planner and workout tracking application built with
 
 ## 🏗️ Architecture
 
-This app follows clean architecture principles with a clear separation of concerns:
+<pre>
 lib/
 ├── core/
 │   ├── constants/       # App-wide constants
@@ -84,10 +84,11 @@ lib/
 │   └── services/       # Database & Notification services
 ├── providers/          # State management (Provider pattern)
 └── ui/
-├── routes/         # Navigation (AutoRoute)
-├── screens/        # App screens
-├── widgets/        # Reusable UI components
-└── theme/          # App theming
+    ├── routes/         # Navigation (AutoRoute)
+    ├── screens/        # App screens
+    ├── widgets/        # Reusable UI components
+    └── theme/          # App theming
+</pre>
 
 ### Key Technologies
 
