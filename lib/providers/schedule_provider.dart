@@ -95,4 +95,15 @@ class ScheduleProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> activateAllSchedules() async {
+    try {
+      await _repository.activateAllSchedules();
+      await loadSchedules();
+      await loadTodaySchedules();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
 }

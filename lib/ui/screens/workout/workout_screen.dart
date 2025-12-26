@@ -56,13 +56,13 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.router.push(WorkoutSetupRoute());
-        },
-        icon: const Icon(Iconsax.add),
-        label: const Text('Setup Workout'),
-      ),
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () {
+      //     context.router.push(WorkoutSetupRoute());
+      //   },
+      //   icon: const Icon(Iconsax.add),
+      //   label: const Text('Setup Workout'),
+      // ),
       body: provider.isLoading
           ? const LoadingIndicator(message: 'Loading workouts...')
           : provider.error != null

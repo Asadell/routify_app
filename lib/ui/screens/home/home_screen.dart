@@ -55,12 +55,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: CustomAppBar(
         title: 'Daily Planner',
         subtitle: dateStr,
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.notification),
-            onPressed: () {},
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Iconsax.notification),
+        //     onPressed: () {},
+        //   ),
+        // ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,

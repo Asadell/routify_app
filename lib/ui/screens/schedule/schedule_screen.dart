@@ -38,17 +38,34 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'My Schedule',
         subtitle: 'Manage your daily schedules',
+        actions: [
+          IconButton(
+            tooltip: 'Activate all schedules',
+            icon: const Icon(Iconsax.refresh),
+            onPressed: () async {
+              final provider = context.read<ScheduleProvider>();
+
+              await provider.activateAllSchedules();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('All schedules activated'),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.router.push(ScheduleFormRoute());
-        },
-        icon: const Icon(Iconsax.add),
-        label: const Text('Add Schedule'),
-      ),
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () {
+      //     context.router.push(ScheduleFormRoute());
+      //   },
+      //   icon: const Icon(Iconsax.add),
+      //   label: const Text('Add Schedule'),
+      // ),
       body: provider.isLoading
           ? const LoadingIndicator(message: 'Loading schedules...')
           : provider.error != null

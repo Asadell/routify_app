@@ -127,4 +127,13 @@ class ScheduleRepository {
       }
     }
   }
+
+  Future<void> activateAllSchedules() async {
+    final db = await DatabaseService.instance.database;
+
+    await db.update(
+      AppConstants.tableSchedules,
+      {'is_active': 1},
+    );
+  }
 }

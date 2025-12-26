@@ -51,20 +51,20 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
       appBar: CustomAppBar(
         title: 'Tasks',
         subtitle: 'Manage your to-do list',
-        actions: [
-          IconButton(
-            icon: const Icon(Iconsax.sort),
-            onPressed: () {},
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Iconsax.sort),
+        //     onPressed: () {},
+        //   ),
+        // ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.router.push(TaskFormRoute());
-        },
-        icon: const Icon(Iconsax.add),
-        label: const Text('Add Task'),
-      ),
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () {
+      //     context.router.push(TaskFormRoute());
+      //   },
+      //   icon: const Icon(Iconsax.add),
+      //   label: const Text('Add Task'),
+      // ),
       body: Column(
         children: [
           Container(
