@@ -60,18 +60,51 @@ class QuickAddRoute extends PageRouteInfo<void> {
 
 /// generated route for
 /// [ScheduleFormScreen]
-class ScheduleFormRoute extends PageRouteInfo<void> {
-  const ScheduleFormRoute({List<PageRouteInfo>? children})
-    : super(ScheduleFormRoute.name, initialChildren: children);
+class ScheduleFormRoute extends PageRouteInfo<ScheduleFormRouteArgs> {
+  ScheduleFormRoute({
+    Key? key,
+    ScheduleModel? schedule,
+    List<PageRouteInfo>? children,
+  }) : super(
+         ScheduleFormRoute.name,
+         args: ScheduleFormRouteArgs(key: key, schedule: schedule),
+         initialChildren: children,
+       );
 
   static const String name = 'ScheduleFormRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const ScheduleFormScreen();
+      final args = data.argsAs<ScheduleFormRouteArgs>(
+        orElse: () => const ScheduleFormRouteArgs(),
+      );
+      return ScheduleFormScreen(key: args.key, schedule: args.schedule);
     },
   );
+}
+
+class ScheduleFormRouteArgs {
+  const ScheduleFormRouteArgs({this.key, this.schedule});
+
+  final Key? key;
+
+  final ScheduleModel? schedule;
+
+  @override
+  String toString() {
+    return 'ScheduleFormRouteArgs{key: $key, schedule: $schedule}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ScheduleFormRouteArgs) return false;
+    return key == other.key && schedule == other.schedule;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ schedule.hashCode;
 }
 
 /// generated route for
@@ -92,18 +125,48 @@ class ScheduleRoute extends PageRouteInfo<void> {
 
 /// generated route for
 /// [TaskFormScreen]
-class TaskFormRoute extends PageRouteInfo<void> {
-  const TaskFormRoute({List<PageRouteInfo>? children})
-    : super(TaskFormRoute.name, initialChildren: children);
+class TaskFormRoute extends PageRouteInfo<TaskFormRouteArgs> {
+  TaskFormRoute({Key? key, TaskModel? task, List<PageRouteInfo>? children})
+    : super(
+        TaskFormRoute.name,
+        args: TaskFormRouteArgs(key: key, task: task),
+        initialChildren: children,
+      );
 
   static const String name = 'TaskFormRoute';
 
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      return const TaskFormScreen();
+      final args = data.argsAs<TaskFormRouteArgs>(
+        orElse: () => const TaskFormRouteArgs(),
+      );
+      return TaskFormScreen(key: args.key, task: args.task);
     },
   );
+}
+
+class TaskFormRouteArgs {
+  const TaskFormRouteArgs({this.key, this.task});
+
+  final Key? key;
+
+  final TaskModel? task;
+
+  @override
+  String toString() {
+    return 'TaskFormRouteArgs{key: $key, task: $task}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! TaskFormRouteArgs) return false;
+    return key == other.key && task == other.task;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ task.hashCode;
 }
 
 /// generated route for
@@ -159,12 +222,11 @@ class WorkoutRoute extends PageRouteInfo<void> {
 class WorkoutSetupRoute extends PageRouteInfo<WorkoutSetupRouteArgs> {
   WorkoutSetupRoute({
     Key? key,
-    required int dayOfWeek,
+    WorkoutModel? workout,
     List<PageRouteInfo>? children,
   }) : super(
          WorkoutSetupRoute.name,
-         args: WorkoutSetupRouteArgs(key: key, dayOfWeek: dayOfWeek),
-         rawPathParams: {'dayOfWeek': dayOfWeek},
+         args: WorkoutSetupRouteArgs(key: key, workout: workout),
          initialChildren: children,
        );
 
@@ -173,35 +235,33 @@ class WorkoutSetupRoute extends PageRouteInfo<WorkoutSetupRouteArgs> {
   static PageInfo page = PageInfo(
     name,
     builder: (data) {
-      final pathParams = data.inheritedPathParams;
       final args = data.argsAs<WorkoutSetupRouteArgs>(
-        orElse: () =>
-            WorkoutSetupRouteArgs(dayOfWeek: pathParams.getInt('dayOfWeek')),
+        orElse: () => const WorkoutSetupRouteArgs(),
       );
-      return WorkoutSetupScreen(key: args.key, dayOfWeek: args.dayOfWeek);
+      return WorkoutSetupScreen(key: args.key, workout: args.workout);
     },
   );
 }
 
 class WorkoutSetupRouteArgs {
-  const WorkoutSetupRouteArgs({this.key, required this.dayOfWeek});
+  const WorkoutSetupRouteArgs({this.key, this.workout});
 
   final Key? key;
 
-  final int dayOfWeek;
+  final WorkoutModel? workout;
 
   @override
   String toString() {
-    return 'WorkoutSetupRouteArgs{key: $key, dayOfWeek: $dayOfWeek}';
+    return 'WorkoutSetupRouteArgs{key: $key, workout: $workout}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! WorkoutSetupRouteArgs) return false;
-    return key == other.key && dayOfWeek == other.dayOfWeek;
+    return key == other.key && workout == other.workout;
   }
 
   @override
-  int get hashCode => key.hashCode ^ dayOfWeek.hashCode;
+  int get hashCode => key.hashCode ^ workout.hashCode;
 }

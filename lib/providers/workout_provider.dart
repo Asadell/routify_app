@@ -196,4 +196,16 @@ class WorkoutProvider with ChangeNotifier {
       return 'scheduled'; // ⏰ Blue
     }
   }
+
+  Future<void> deleteHistory(int id) async {
+    try {
+      await _repository.deleteHistory(id);
+      await loadWeekHistory();
+      await loadMonthHistory();
+      await loadWeeklyStats();
+      await loadMonthlyStats();
+    } catch (e) {
+      _error = e.toString();
+    }
+  }
 }

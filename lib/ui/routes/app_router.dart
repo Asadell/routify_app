@@ -1,6 +1,9 @@
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:routify_app/data/models/schedule_model.dart';
+import 'package:routify_app/data/models/task_model.dart';
+import 'package:routify_app/data/models/workout_model.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/schedule/schedule_screen.dart';
 import '../screens/schedule/schedule_form_screen.dart';
