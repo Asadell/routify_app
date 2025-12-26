@@ -40,36 +40,29 @@ A modern, feature-rich daily planner and workout tracking application built with
 ## 📸 Screenshots
 
 ### Home Screen
-<img src="assets/screenshots/home_screen.png" alt="Home Screen" width="80%"/>
-
+![Home Screen](assets/screenshots/home_screen.jpeg)
 *Main dashboard showing today's schedules, tasks, and workouts*
 
 ### Schedule Management
-<img src="assets/screenshots/schedule_screen.png" alt="Schedule Screen" width="80%"/>
-
+![Schedule Screen](assets/screenshots/schedule_screen.jpeg)
 *Manage your daily schedules with recurring options*
 
 ### Task Management
-<img src="assets/screenshots/task_screen.png" alt="Task Screen" width="80%"/>
-
+![Task Screen](assets/screenshots/task_screen.jpeg)
 *Organize tasks by priority and due date*
 
 ### Workout Tracking
-<img src="assets/screenshots/workout_screen.png" alt="Workout Screen" width="80%"/>
-
+![Workout Screen](assets/screenshots/workout_screen.jpeg)
 *Weekly workout planner with status indicators*
 
 ### Workout Session
-<img src="assets/screenshots/workout_session_screen.png" alt="Workout Session" width="80%"/>
-<img src="assets/screenshots/workout_session2_screen.png" alt="Workout Session 2" width="80%"/>
-
+![Workout Session](assets/screenshots/workout_session_screen.jpeg)
+![Workout Session2](assets/screenshots/workout_session2_screen.jpeg)
 *Complete your workouts step-by-step with live tracking*
 
 ### Workout History
-<img src="assets/screenshots/workout_history_screen.png" alt="Workout History" width="80%"/>
-
+![Workout History](assets/screenshots/workout_history_screen.jpeg)
 *Track your workout progress over time*
-
 
 ## 🏗️ Architecture
 
