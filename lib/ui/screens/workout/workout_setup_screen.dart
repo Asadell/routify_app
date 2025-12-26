@@ -26,7 +26,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
   late TextEditingController _durationController;
   late TextEditingController _notesController;
 
-  int _selectedDay = 0;
+  Set<int> _selectedDays = {};
   bool _enableNotification = false;
   List<ExerciseModel> _exercises = [];
 
@@ -46,13 +46,14 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
         text: workout.estimatedDuration?.toString() ?? '',
       );
       _notesController = TextEditingController(text: workout.notes ?? '');
-      _selectedDay = workout.dayOfWeek;
+      _selectedDays = workout.daysOfWeek.toSet();
       _enableNotification = workout.enableNotification;
       _exercises = List.from(workout.exercises);
     } else {
       _nameController = TextEditingController();
       _durationController = TextEditingController();
       _notesController = TextEditingController();
+      _selectedDays = {};
     }
   }
 
@@ -104,6 +105,13 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
   void _saveWorkout() {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_selectedDays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select at least one day')),
+      );
+      return;
+    }
+
     if (_exercises.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please add at least one exercise')),
@@ -113,7 +121,7 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
 
     final workout = WorkoutModel(
       id: _isEditing ? widget.workout!.id : null,
-      dayOfWeek: _selectedDay,
+      daysOfWeek: _selectedDays.toList()..sort(), // convert ke list dan sort
       name: _nameController.text.trim(),
       estimatedDuration: int.tryParse(_durationController.text),
       notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
@@ -308,80 +316,108 @@ class _WorkoutSetupScreenState extends State<WorkoutSetupScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Select Day', style: AppTextStyles.labelLarge),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Select Days', style: AppTextStyles.labelLarge),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  if (_selectedDays.length == 7) {
+                    _selectedDays.clear();
+                  } else {
+                    _selectedDays = {0, 1, 2, 3, 4, 5, 6};
+                  }
+                });
+              },
+              child: Text(_selectedDays.length == 7 ? 'Clear All' : 'Select All'),
+            ),
+          ],
+        ),
         SizedBox(height: AppSizes.sm),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: days.map((day) {
-              final isSelected = _selectedDay == day['value'] as int;
-              return Padding(
-                padding: EdgeInsets.only(right: AppSizes.sm),
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedDay = day['value'] as int;
-                    });
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppSizes.paddingMd,
-                      vertical: AppSizes.paddingSm,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMd),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primary : AppColors.border,
-                        width: isSelected ? 2 : 1,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          day['label'] as String,
-                          style: AppTextStyles.labelLarge.copyWith(
-                            color: isSelected ? Colors.white : AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
+        Wrap(
+          spacing: AppSizes.sm,
+          runSpacing: AppSizes.sm,
+          children: days.map((day) {
+            final dayValue = day['value'] as int;
+            final isSelected = _selectedDays.contains(dayValue);
+            
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedDays.remove(dayValue);
+                  } else {
+                    _selectedDays.add(dayValue);
+                  }
+                });
+              },
+              child: Container(
+                width: 48,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.border,
+                    width: isSelected ? 2 : 1,
+                  ),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                      ],
+                        ]
+                      : null,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isSelected)
+                      Icon(
+                        Iconsax.tick_circle,
+                        size: 16,
+                        color: Colors.white,
+                      )
+                    else
+                      SizedBox(height: 16),
+                    SizedBox(height: 4),
+                    Text(
+                      day['label'] as String,
+                      style: AppTextStyles.labelMedium.copyWith(
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        SizedBox(height: AppSizes.sm),
+        if (_selectedDays.isNotEmpty)
+          Container(
+            padding: EdgeInsets.all(AppSizes.paddingSm),
+            decoration: BoxDecoration(
+              color: AppColors.info.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+            ),
+            child: Row(
+              children: [
+                Icon(Iconsax.calendar, size: AppSizes.iconXs, color: AppColors.info),
+                SizedBox(width: AppSizes.xs),
+                Expanded(
+                  child: Text(
+                    'Selected: ${_selectedDays.length} day${_selectedDays.length > 1 ? 's' : ''}',
+                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.info),
                   ),
                 ),
-              );
-            }).toList(),
+              ],
+            ),
           ),
-        ),
-        SizedBox(height: AppSizes.xs),
-        Container(
-          padding: EdgeInsets.all(AppSizes.paddingSm),
-          decoration: BoxDecoration(
-            color: AppColors.info.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppSizes.radiusSm),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Iconsax.calendar, size: AppSizes.iconXs, color: AppColors.info),
-              SizedBox(width: AppSizes.xs),
-              Text(
-                'Selected: ${days[_selectedDay]['full']}',
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.info),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }

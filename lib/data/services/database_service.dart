@@ -68,11 +68,20 @@ class DatabaseService {
     await db.execute('''
       CREATE TABLE ${AppConstants.tableWorkouts} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        day_of_week INTEGER NOT NULL,
         name TEXT NOT NULL,
         estimated_duration INTEGER,
         notes TEXT,
         enable_notification INTEGER DEFAULT 0
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableWorkoutDays} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        workout_id INTEGER NOT NULL,
+        day_of_week INTEGER NOT NULL,
+        FOREIGN KEY(workout_id) REFERENCES ${AppConstants.tableWorkouts}(id) ON DELETE CASCADE,
+        UNIQUE(workout_id, day_of_week)
       )
     ''');
 

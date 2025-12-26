@@ -2,23 +2,48 @@ import '../models/workout_model.dart';
 import '../models/exercise_model.dart';
 import '../models/workout_history_model.dart';
 import '../services/database_service.dart';
-// import '../services/notification_service.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/date_helper.dart';
 
 class WorkoutRepository {
   final DatabaseService _dbService = DatabaseService.instance;
-  // final NotificationService _notificationService = NotificationService.instance;
 
-  // ===== Workout CRUD =====
+  Future<List<int>> _getWorkoutDays(int workoutId) async {
+    final maps = await _dbService.queryWhere(
+      AppConstants.tableWorkoutDays,
+      'workout_id = ?',
+      [workoutId],
+    );
+    return maps.map((m) => m['day_of_week'] as int).toList();
+  }
+
+  Future<void> _saveWorkoutDays(int workoutId, List<int> days) async {
+    await _dbService.delete(
+      AppConstants.tableWorkoutDays,
+      'workout_id = ?',
+      [workoutId],
+    );
+
+    for (final day in days) {
+      await _dbService.insert(
+        AppConstants.tableWorkoutDays,
+        {
+          'workout_id': workoutId,
+          'day_of_week': day,
+        },
+      );
+    }
+  }
 
   Future<List<WorkoutModel>> getAllWorkouts() async {
     final maps = await _dbService.queryAll(AppConstants.tableWorkouts);
     final workouts = <WorkoutModel>[];
 
     for (final map in maps) {
-      final workout = WorkoutModel.fromMap(map);
-      final exercises = await getExercisesForWorkout(workout.id!);
+      final workoutId = map['id'] as int;
+      final days = await _getWorkoutDays(workoutId);
+      final workout = WorkoutModel.fromMap(map, daysOfWeek: days);
+      final exercises = await getExercisesForWorkout(workoutId);
       workouts.add(workout.copyWith(exercises: exercises));
     }
 
@@ -26,20 +51,79 @@ class WorkoutRepository {
   }
 
   Future<List<WorkoutModel>> getWorkoutsForDay(int dayOfWeek) async {
-    final maps = await _dbService.queryWhere(
-      AppConstants.tableWorkouts,
-      'day_of_week = ?',
-      [dayOfWeek],
-    );
+    final db = await _dbService.database;
+    final maps = await db.rawQuery('''
+      SELECT DISTINCT w.* FROM ${AppConstants.tableWorkouts} w
+      INNER JOIN ${AppConstants.tableWorkoutDays} wd ON w.id = wd.workout_id
+      WHERE wd.day_of_week = ?
+    ''', [dayOfWeek]);
 
     final workouts = <WorkoutModel>[];
     for (final map in maps) {
-      final workout = WorkoutModel.fromMap(map);
-      final exercises = await getExercisesForWorkout(workout.id!);
+      final workoutId = map['id'] as int;
+      final days = await _getWorkoutDays(workoutId);
+      final workout = WorkoutModel.fromMap(map, daysOfWeek: days);
+      final exercises = await getExercisesForWorkout(workoutId);
       workouts.add(workout.copyWith(exercises: exercises));
     }
 
     return workouts;
+  }
+
+  Future<WorkoutModel?> getWorkoutById(int id) async {
+    final maps = await _dbService.queryWhere(
+      AppConstants.tableWorkouts,
+      'id = ?',
+      [id],
+    );
+    if (maps.isEmpty) return null;
+
+    final days = await _getWorkoutDays(id);
+    final workout = WorkoutModel.fromMap(maps.first, daysOfWeek: days);
+    final exercises = await getExercisesForWorkout(id);
+    return workout.copyWith(exercises: exercises);
+  }
+
+  Future<int> insertWorkout(WorkoutModel workout) async {
+    final id = await _dbService.insert(
+      AppConstants.tableWorkouts,
+      workout.toMap(),
+    );
+
+    // Save days
+    await _saveWorkoutDays(id, workout.daysOfWeek);
+
+    // Insert exercises
+    for (final exercise in workout.exercises) {
+      await insertExercise(exercise.copyWith(workoutId: id));
+    }
+
+    return id;
+  }
+
+  Future<int> updateWorkout(WorkoutModel workout) async {
+    final result = await _dbService.update(
+      AppConstants.tableWorkouts,
+      workout.toMap(),
+      'id = ?',
+      [workout.id],
+    );
+
+    // Update days
+    await _saveWorkoutDays(workout.id!, workout.daysOfWeek);
+
+    // Delete old exercises and insert new ones
+    await _dbService.delete(
+      AppConstants.tableExercises,
+      'workout_id = ?',
+      [workout.id],
+    );
+
+    for (final exercise in workout.exercises) {
+      await insertExercise(exercise.copyWith(workoutId: workout.id!));
+    }
+
+    return result;
   }
 
   Future<List<WorkoutModel>> getTodayWorkouts() async {
@@ -60,57 +144,7 @@ class WorkoutRepository {
     return weekWorkouts;
   }
 
-  Future<WorkoutModel?> getWorkoutById(int id) async {
-    final maps = await _dbService.queryWhere(
-      AppConstants.tableWorkouts,
-      'id = ?',
-      [id],
-    );
-    if (maps.isEmpty) return null;
-
-    final workout = WorkoutModel.fromMap(maps.first);
-    final exercises = await getExercisesForWorkout(id);
-    return workout.copyWith(exercises: exercises);
-  }
-
-  Future<int> insertWorkout(WorkoutModel workout) async {
-    final id = await _dbService.insert(
-      AppConstants.tableWorkouts,
-      workout.toMap(),
-    );
-
-    // Insert exercises
-    for (final exercise in workout.exercises) {
-      await insertExercise(exercise.copyWith(workoutId: id));
-    }
-
-    return id;
-  }
-
-  Future<int> updateWorkout(WorkoutModel workout) async {
-    final result = await _dbService.update(
-      AppConstants.tableWorkouts,
-      workout.toMap(),
-      'id = ?',
-      [workout.id],
-    );
-
-    // Delete old exercises and insert new ones
-    await _dbService.delete(
-      AppConstants.tableExercises,
-      'workout_id = ?',
-      [workout.id],
-    );
-
-    for (final exercise in workout.exercises) {
-      await insertExercise(exercise.copyWith(workoutId: workout.id!));
-    }
-
-    return result;
-  }
-
   Future<int> deleteWorkout(int id) async {
-    // Delete associated exercises first
     await _dbService.delete(
       AppConstants.tableExercises,
       'workout_id = ?',

@@ -488,6 +488,21 @@ class _WorkoutCard extends StatelessWidget {
                       SizedBox(height: AppSizes.xs),
                       Row(
                         children: [
+                          Icon(Iconsax.calendar_1, size: AppSizes.iconXs, color: AppColors.textSecondary),
+                          SizedBox(width: AppSizes.xs),
+                          Expanded(
+                            child: Text(
+                              workout.daysNames,
+                              style: AppTextStyles.bodySmall,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 2),
+                      Row(
+                        children: [
                           Icon(Iconsax.clock, size: AppSizes.iconXs, color: AppColors.textSecondary),
                           SizedBox(width: AppSizes.xs),
                           Text(

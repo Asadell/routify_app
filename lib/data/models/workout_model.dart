@@ -2,16 +2,16 @@ import 'package:routify_app/data/models/exercise_model.dart';
 
 class WorkoutModel {
   final int? id;
-  final int dayOfWeek; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  final List<int> daysOfWeek;
   final String name;
-  final int? estimatedDuration; // in minutes
+  final int? estimatedDuration;
   final String? notes;
   final bool enableNotification;
   final List<ExerciseModel> exercises;
 
   WorkoutModel({
     this.id,
-    required this.dayOfWeek,
+    required this.daysOfWeek,
     required this.name,
     this.estimatedDuration,
     this.notes,
@@ -22,7 +22,6 @@ class WorkoutModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'day_of_week': dayOfWeek,
       'name': name,
       'estimated_duration': estimatedDuration,
       'notes': notes,
@@ -30,10 +29,10 @@ class WorkoutModel {
     };
   }
 
-  factory WorkoutModel.fromMap(Map<String, dynamic> map) {
+  factory WorkoutModel.fromMap(Map<String, dynamic> map, {List<int>? daysOfWeek}) {
     return WorkoutModel(
       id: map['id'] as int?,
-      dayOfWeek: map['day_of_week'] as int,
+      daysOfWeek: daysOfWeek ?? [], 
       name: map['name'] as String,
       estimatedDuration: map['estimated_duration'] as int?,
       notes: map['notes'] as String?,
@@ -44,7 +43,7 @@ class WorkoutModel {
 
   WorkoutModel copyWith({
     int? id,
-    int? dayOfWeek,
+    List<int>? daysOfWeek,
     String? name,
     int? estimatedDuration,
     String? notes,
@@ -53,7 +52,7 @@ class WorkoutModel {
   }) {
     return WorkoutModel(
       id: id ?? this.id,
-      dayOfWeek: dayOfWeek ?? this.dayOfWeek,
+      daysOfWeek: daysOfWeek ?? this.daysOfWeek,
       name: name ?? this.name,
       estimatedDuration: estimatedDuration ?? this.estimatedDuration,
       notes: notes ?? this.notes,
@@ -62,16 +61,10 @@ class WorkoutModel {
     );
   }
 
-  String get dayName {
-    const days = [
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday'
-    ];
-    return days[dayOfWeek];
+  String get daysNames {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    if (daysOfWeek.isEmpty) return 'No days';
+    if (daysOfWeek.length == 7) return 'Every day';
+    return daysOfWeek.map((d) => days[d]).join(', ');
   }
 }

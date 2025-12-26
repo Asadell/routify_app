@@ -1,6 +1,6 @@
 class AppConstants {
   // Database
-  static const String dbName = 'daily_plannerv1.db';
+  static const String dbName = 'daily_plannervv1.db';
   static const int dbVersion = 1;
 
   // Tables
@@ -8,6 +8,7 @@ class AppConstants {
   static const String tableTasks = 'tasks';
   static const String tableWorkouts = 'workouts';
   static const String tableExercises = 'exercises';
+  static const String tableWorkoutDays = 'workout_days';
   static const String tableWorkoutHistory = 'workout_history';
 
   // Notification channels
