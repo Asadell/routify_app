@@ -51,7 +51,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
           IconButton(
             icon: const Icon(Iconsax.chart),
             onPressed: () {
-              context.router.push(const WorkoutHistoryRoute());
+              context.router.push(WorkoutHistoryRoute());
             },
           ),
         ],
@@ -444,7 +444,12 @@ class _WorkoutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.router.push(WorkoutSetupRoute(workout: workout));
+        context.router.push(
+          WorkoutSessionRoute(
+            workout: workout,
+            date: DateTime.now(),
+          ),
+        );
       },
       child: Container(
         padding: EdgeInsets.all(AppSizes.paddingMd),
@@ -500,7 +505,18 @@ class _WorkoutCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(Iconsax.arrow_right_3, color: AppColors.iconSecondary),
+                IconButton(
+                  onPressed: () {
+                    context.router.push(WorkoutSetupRoute(workout: workout));
+                  },
+                  icon: Icon(Iconsax.edit_2, color: AppColors.primary, size: AppSizes.iconSm),
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.radiusSm),
+                    ),
+                  ),
+                ),
               ],
             ),
             if (workout.notes != null && workout.notes!.isNotEmpty) ...[

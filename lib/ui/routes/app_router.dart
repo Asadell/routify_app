@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:routify_app/data/models/schedule_model.dart';
 import 'package:routify_app/data/models/task_model.dart';
 import 'package:routify_app/data/models/workout_model.dart';
+import 'package:routify_app/ui/screens/workout/workout_session_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/schedule/schedule_screen.dart';
 import '../screens/schedule/schedule_form_screen.dart';
@@ -36,5 +37,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: TaskFormRoute.page, path: '/task/form'),
         AutoRoute(page: WorkoutSetupRoute.page, path: '/workout/setup'),
         AutoRoute(page: WorkoutHistoryRoute.page, path: '/workout/history'),
+        AutoRoute(page: WorkoutSessionRoute.page),
       ];
 }

@@ -218,6 +218,64 @@ class WorkoutRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [WorkoutSessionScreen]
+class WorkoutSessionRoute extends PageRouteInfo<WorkoutSessionRouteArgs> {
+  WorkoutSessionRoute({
+    Key? key,
+    required WorkoutModel workout,
+    required DateTime date,
+    List<PageRouteInfo>? children,
+  }) : super(
+         WorkoutSessionRoute.name,
+         args: WorkoutSessionRouteArgs(key: key, workout: workout, date: date),
+         initialChildren: children,
+       );
+
+  static const String name = 'WorkoutSessionRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<WorkoutSessionRouteArgs>();
+      return WorkoutSessionScreen(
+        key: args.key,
+        workout: args.workout,
+        date: args.date,
+      );
+    },
+  );
+}
+
+class WorkoutSessionRouteArgs {
+  const WorkoutSessionRouteArgs({
+    this.key,
+    required this.workout,
+    required this.date,
+  });
+
+  final Key? key;
+
+  final WorkoutModel workout;
+
+  final DateTime date;
+
+  @override
+  String toString() {
+    return 'WorkoutSessionRouteArgs{key: $key, workout: $workout, date: $date}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! WorkoutSessionRouteArgs) return false;
+    return key == other.key && workout == other.workout && date == other.date;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ workout.hashCode ^ date.hashCode;
+}
+
+/// generated route for
 /// [WorkoutSetupScreen]
 class WorkoutSetupRoute extends PageRouteInfo<WorkoutSetupRouteArgs> {
   WorkoutSetupRoute({
