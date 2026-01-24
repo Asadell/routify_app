@@ -61,13 +61,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.router.push(ScheduleFormRoute());
-        },
-        icon: const Icon(Iconsax.add),
-        label: const Text('Add Schedule'),
-      ),
+      // floatingActionButton: FloatingActionButton.extended(
+      //   onPressed: () {
+      //     context.router.push(ScheduleFormRoute());
+      //   },
+      //   icon: const Icon(Iconsax.add),
+      //   label: const Text('Add Schedule'),
+      // ),
       body: provider.isLoading
           ? const LoadingIndicator(message: 'Loading schedules...')
           : provider.error != null
