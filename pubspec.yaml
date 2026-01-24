@@ -35,6 +35,6 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon.png"
+  image_path: "assets/icon/icon3.png"
   generate: true
 
