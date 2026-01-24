@@ -1,6 +1,6 @@
 class AppConstants {
   // Database
-  static const String dbName = 'daily_plannervv2.db';
+  static const String dbName = 'daily_planner1.db';
   static const int dbVersion = 1;
 
   // Tables

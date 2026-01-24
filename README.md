@@ -63,6 +63,11 @@ Aplikasi pengelola jadwal harian dan pelacak workout yang modern dan kaya fitur,
 
 *Kelola jadwal harian Anda dengan opsi berulang*
 
+### Pilihan Bootcamp
+<img src="assets/screenshots/bootcamp_selection_screen.jpeg" alt="Bootcamp Selection Screen" width="80%"/>
+
+*Pilih bootcamp yang akan digunakan saat membuat jadwal baru*
+
 ### Manajemen Tugas
 <img src="assets/screenshots/task_screen.jpeg" alt="Task Screen" width="80%"/>
 

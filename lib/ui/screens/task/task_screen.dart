@@ -79,6 +79,10 @@ class _TaskScreenState extends State<TaskScreen> with SingleTickerProviderStateM
               indicatorColor: AppColors.primary,
               indicatorWeight: 3,
               labelStyle: AppTextStyles.labelLarge,
+              dividerHeight: 0,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              labelPadding: EdgeInsets.symmetric(horizontal: AppSizes.paddingMd),
               tabs: const [
                 Tab(text: 'Today'),
                 Tab(text: 'Upcoming'),

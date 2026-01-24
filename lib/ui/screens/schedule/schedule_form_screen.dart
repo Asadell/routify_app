@@ -48,6 +48,12 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
   bool _enableNotification = false;
 
   bool get _isEditing => widget.schedule != null;
+  
+  // Helper untuk cek apakah ada repeat day yang aktif
+  bool get _hasActiveRepeatDays {
+    return _repeatMon || _repeatTue || _repeatWed || _repeatThu || 
+           _repeatFri || _repeatSat || _repeatSun || _useAll7Days;
+  }
 
   @override
   void initState() {
@@ -197,6 +203,10 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
         if (isStartDate) {
           _startDate = date;
           _startDateController.text = DateHelper.formatDate(date);
+          
+          // Auto-fill end date dengan +1 hari
+          _endDate = date.add(const Duration(days: 1));
+          _endDateController.text = DateHelper.formatDate(_endDate!);
         } else {
           _endDate = date;
           _endDateController.text = DateHelper.formatDate(date);
@@ -483,39 +493,48 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
               ],
             ),
             SizedBox(height: AppSizes.md),
-            _buildSwitchTile(
-              icon: Iconsax.clock_1,
-              title: 'Bootcamp Mode',
-              subtitle: 'Different time for each day',
-              value: _isBootcampMode,
-              onChanged: (value) {
-                setState(() => _isBootcampMode = value);
-              },
+            // Bootcamp Mode - disabled jika ada repeat days aktif
+            Opacity(
+              opacity: _hasActiveRepeatDays ? 0.5 : 1.0,
+              child: _buildSwitchTile(
+                icon: Iconsax.clock_1,
+                title: 'Bootcamp Mode',
+                subtitle: 'Different time for each day',
+                value: _isBootcampMode,
+                onChanged: _hasActiveRepeatDays 
+                    ? (_) {} // Disabled jika ada repeat days
+                    : (value) {
+                        setState(() => _isBootcampMode = value);
+                      },
+              ),
             ),
             if (_isBootcampMode) ...[
               SizedBox(height: AppSizes.md),
               _buildBootcampTimeEditor(),
             ],
-            SizedBox(height: AppSizes.lg),
-            _buildSectionTitle('Repeat Days'),
-            SizedBox(height: AppSizes.sm),
-            _buildDaySelector(),
-            SizedBox(height: AppSizes.md),
-            _buildSwitchTile(
-              icon: Iconsax.calendar_2,
-              title: 'Use All 7 Days',
-              subtitle: 'Schedule will repeat every day',
-              value: _useAll7Days,
-              onChanged: (value) {
-                setState(() {
-                  _useAll7Days = value;
-                  if (value) {
-                    _repeatMon = _repeatTue = _repeatWed = true;
-                    _repeatThu = _repeatFri = _repeatSat = _repeatSun = true;
-                  }
-                });
-              },
-            ),
+            // Repeat Days & Use All 7 Days - hidden jika bootcamp mode aktif
+            if (!_isBootcampMode) ...[
+              SizedBox(height: AppSizes.lg),
+              _buildSectionTitle('Repeat Days'),
+              SizedBox(height: AppSizes.sm),
+              _buildDaySelector(),
+              SizedBox(height: AppSizes.md),
+              _buildSwitchTile(
+                icon: Iconsax.calendar_2,
+                title: 'Use All 7 Days',
+                subtitle: 'Schedule will repeat every day',
+                value: _useAll7Days,
+                onChanged: (value) {
+                  setState(() {
+                    _useAll7Days = value;
+                    if (value) {
+                      _repeatMon = _repeatTue = _repeatWed = true;
+                      _repeatThu = _repeatFri = _repeatSat = _repeatSun = true;
+                    }
+                  });
+                },
+              ),
+            ],
             SizedBox(height: AppSizes.sm),
             _buildSwitchTile(
               icon: Iconsax.notification,
@@ -735,8 +754,35 @@ class _TimeSlotDialogState extends State<_TimeSlotDialog> {
   @override
   void initState() {
     super.initState();
-    _startTime = widget.initialStart ?? TimeOfDay.now();
-    _endTime = widget.initialEnd ?? TimeOfDay.now();
+    
+    // Jika sudah ada time sebelumnya, gunakan itu
+    if (widget.initialStart != null && widget.initialEnd != null) {
+      _startTime = widget.initialStart!;
+      _endTime = widget.initialEnd!;
+    } else {
+      // Jika baru, gunakan waktu sekarang untuk start
+      final now = TimeOfDay.now();
+      _startTime = now;
+      
+      // End time = +30 menit, max 23:59
+      final nowDateTime = DateTime.now();
+      final startDateTime = DateTime(
+        nowDateTime.year,
+        nowDateTime.month,
+        nowDateTime.day,
+        now.hour,
+        now.minute,
+      );
+      
+      var endDateTime = startDateTime.add(const Duration(minutes: 30));
+      final maxTime = DateTime(nowDateTime.year, nowDateTime.month, nowDateTime.day, 23, 59);
+      
+      if (endDateTime.isAfter(maxTime)) {
+        endDateTime = maxTime;
+      }
+      
+      _endTime = TimeOfDay.fromDateTime(endDateTime);
+    }
   }
 
   @override
@@ -752,7 +798,30 @@ class _TimeSlotDialogState extends State<_TimeSlotDialog> {
             trailing: const Icon(Iconsax.clock),
             onTap: () async {
               final time = await showTimePicker(context: context, initialTime: _startTime);
-              if (time != null) setState(() => _startTime = time);
+              if (time != null) {
+                setState(() {
+                  _startTime = time;
+                  
+                  // Auto update end time
+                  final now = DateTime.now();
+                  final startDateTime = DateTime(
+                    now.year,
+                    now.month,
+                    now.day,
+                    time.hour,
+                    time.minute,
+                  );
+                  
+                  var endDateTime = startDateTime.add(const Duration(minutes: 30));
+                  final maxTime = DateTime(now.year, now.month, now.day, 23, 59);
+                  
+                  if (endDateTime.isAfter(maxTime)) {
+                    endDateTime = maxTime;
+                  }
+                  
+                  _endTime = TimeOfDay.fromDateTime(endDateTime);
+                });
+              }
             },
           ),
           ListTile(

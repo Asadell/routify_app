@@ -61,13 +61,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ],
       ),
-      // floatingActionButton: FloatingActionButton.extended(
-      //   onPressed: () {
-      //     context.router.push(ScheduleFormRoute());
-      //   },
-      //   icon: const Icon(Iconsax.add),
-      //   label: const Text('Add Schedule'),
-      // ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          context.router.push(ScheduleFormRoute());
+        },
+        icon: const Icon(Iconsax.add),
+        label: const Text('Add Schedule'),
+      ),
       body: provider.isLoading
           ? const LoadingIndicator(message: 'Loading schedules...')
           : provider.error != null
@@ -101,40 +101,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             onToggle: () {
                               provider.toggleScheduleActive(schedule);
                             },
-                            onDelete: () {
-                              _showDeleteDialog(context, schedule);
+                            onDelete: () async {
+                              await provider.deleteSchedule(schedule.id!);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Schedule deleted')),
+                                );
+                              }
                             },
                           );
                         },
                       ),
                     ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context, ScheduleModel schedule) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Schedule'),
-        content: Text('Are you sure you want to delete "${schedule.title}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<ScheduleProvider>().deleteSchedule(schedule.id!);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Schedule deleted')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -143,7 +121,7 @@ class _ScheduleCard extends StatelessWidget {
   final ScheduleModel schedule;
   final VoidCallback onTap;
   final VoidCallback onToggle;
-  final VoidCallback onDelete;
+  final Future<void> Function() onDelete;
 
   const _ScheduleCard({
     required this.schedule,
@@ -178,7 +156,7 @@ class _ScheduleCard extends StatelessWidget {
         child: Icon(Iconsax.trash, color: Colors.white, size: AppSizes.iconMd),
       ),
       confirmDismiss: (_) async {
-        return await showDialog(
+        return await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
             title: const Text('Delete Schedule'),
