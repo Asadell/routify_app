@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:routify_app/data/repositories/schedule_repository.dart';
 import '../../../providers/schedule_provider.dart';
 import '../../../data/models/schedule_model.dart';
 import '../../theme/app_colors.dart';
@@ -26,6 +27,12 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
   late TextEditingController _descriptionController;
   late TextEditingController _startTimeController;
   late TextEditingController _endTimeController;
+  DateTime? _startDate;
+  DateTime? _endDate;  
+  bool _isBootcampMode = false;
+  Map<int, TimeSlot> _timeSlots = {};
+  late TextEditingController _startDateController;
+  late TextEditingController _endDateController;  
 
   TimeOfDay? _startTime;
   TimeOfDay? _endTime;
@@ -53,16 +60,22 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
       final schedule = widget.schedule!;
       _titleController = TextEditingController(text: schedule.title);
       _descriptionController = TextEditingController(text: schedule.description ?? '');
-      _startTimeController = TextEditingController(text: schedule.startTime);
-      _endTimeController = TextEditingController(text: schedule.endTime);
-
+      
       final startDateTime = DateHelper.parseTime(schedule.startTime);
       final endDateTime = DateHelper.parseTime(schedule.endTime);
+      
       if (startDateTime != null) {
         _startTime = TimeOfDay.fromDateTime(startDateTime);
+        _startTimeController = TextEditingController(text: schedule.startTime);
+      } else {
+        _startTimeController = TextEditingController();
       }
+      
       if (endDateTime != null) {
         _endTime = TimeOfDay.fromDateTime(endDateTime);
+        _endTimeController = TextEditingController(text: schedule.endTime);
+      } else {
+        _endTimeController = TextEditingController();
       }
 
       _repeatMon = schedule.repeatMon;
@@ -74,11 +87,27 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
       _repeatSun = schedule.repeatSun;
       _useAll7Days = schedule.useAll7Days;
       _enableNotification = schedule.enableNotification;
+
+      _startDate = schedule.startDate;
+      _endDate = schedule.endDate;
+      _isBootcampMode = schedule.hasCustomTimeSlots();
+      if (schedule.timeSlots != null) {
+        _timeSlots = Map.from(schedule.timeSlots!);
+      }
+      
+      _startDateController = TextEditingController(
+        text: _startDate != null ? DateHelper.formatDate(_startDate!) : '',
+      );
+      _endDateController = TextEditingController(
+        text: _endDate != null ? DateHelper.formatDate(_endDate!) : '',
+      );
     } else {
       _titleController = TextEditingController();
       _descriptionController = TextEditingController();
       _startTimeController = TextEditingController();
       _endTimeController = TextEditingController();
+      _startDateController = TextEditingController();
+      _endDateController = TextEditingController();
     }
   }
 
@@ -88,6 +117,8 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
     _descriptionController.dispose();
     _startTimeController.dispose();
     _endTimeController.dispose();
+    _startDateController.dispose();
+    _endDateController.dispose();  
     super.dispose();
   }
 
@@ -114,6 +145,25 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
         if (isStartTime) {
           _startTime = time;
           _startTimeController.text = time.format(context);
+          
+          final now = DateTime.now();
+          final startDateTime = DateTime(
+            now.year,
+            now.month,
+            now.day,
+            time.hour,
+            time.minute,
+          );
+          
+          var endDateTime = startDateTime.add(const Duration(minutes: 30));
+          
+          final maxTime = DateTime(now.year, now.month, now.day, 23, 59);
+          if (endDateTime.isAfter(maxTime)) {
+            endDateTime = maxTime;
+          }
+          
+          _endTime = TimeOfDay.fromDateTime(endDateTime);
+          _endTimeController.text = _endTime!.format(context);
         } else {
           _endTime = time;
           _endTimeController.text = time.format(context);
@@ -122,7 +172,40 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
     }
   }
 
-  void _saveSchedule() {
+  Future<void> _pickDate(bool isStartDate) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: isStartDate
+          ? (_startDate ?? DateTime.now())
+          : (_endDate ?? DateTime.now()),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (date != null) {
+      setState(() {
+        if (isStartDate) {
+          _startDate = date;
+          _startDateController.text = DateHelper.formatDate(date);
+        } else {
+          _endDate = date;
+          _endDateController.text = DateHelper.formatDate(date);
+        }
+      });
+    }
+  }
+
+  void _saveSchedule() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_startTime == null || _endTime == null) {
@@ -130,6 +213,15 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
         const SnackBar(content: Text('Please select start and end time')),
       );
       return;
+    }
+    
+    if (_startDate != null && _endDate != null) {
+      if (_endDate!.isBefore(_startDate!)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('End date must be after start date')),
+        );
+        return;
+      }
     }
 
     final schedule = ScheduleModel(
@@ -149,22 +241,154 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
       repeatSun: _repeatSun,
       useAll7Days: _useAll7Days,
       enableNotification: _enableNotification,
+      startDate: _startDate,
+      endDate: _endDate,
+      timeSlots: _isBootcampMode ? _timeSlots : null,
     );
 
     final provider = context.read<ScheduleProvider>();
-    if (_isEditing) {
-      provider.updateSchedule(schedule);
-    } else {
-      provider.addSchedule(schedule);
-    }
+    
+    try {
+      if (_isEditing) {
+        await provider.updateSchedule(schedule);
+      } else {
+        final newId = await provider.addSchedule(schedule);
+        
+        if (_isBootcampMode && _timeSlots.isNotEmpty) {
+          await ScheduleRepository().saveTimeSlots(newId, _timeSlots);
+        }
+      }
 
-    context.router.pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isEditing ? 'Schedule updated' : 'Schedule created'),
-        backgroundColor: AppColors.success,
+      if (mounted) {
+        context.router.pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEditing ? 'Schedule updated' : 'Schedule created'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildDateField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+    required VoidCallback onClear,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTextStyles.labelLarge),
+        SizedBox(height: AppSizes.xs),
+        TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: 'Select date',
+            prefixIcon: Icon(icon, size: AppSizes.iconSm),
+            suffixIcon: controller.text.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Iconsax.close_circle),
+                    onPressed: onClear,
+                  )
+                : null,
+          ),
+          readOnly: true,
+          onTap: onTap,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBootcampTimeEditor() {
+    final dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    return Container(
+      padding: EdgeInsets.all(AppSizes.paddingMd),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppSizes.radiusMd),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Set Time for Each Day', style: AppTextStyles.headlineSmall),
+          SizedBox(height: AppSizes.sm),
+          ...List.generate(7, (index) {
+            final dayOfWeek = (index + 1) % 7; // Convert to 0=Sun format
+            final hasSlot = _timeSlots.containsKey(dayOfWeek);
+            
+            return Padding(
+              padding: EdgeInsets.only(bottom: AppSizes.sm),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(dayNames[index], style: AppTextStyles.bodyMedium),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: hasSlot
+                        ? Text(
+                            '${_timeSlots[dayOfWeek]!.startTime} - ${_timeSlots[dayOfWeek]!.endTime}',
+                            style: AppTextStyles.bodySmall,
+                          )
+                        : const Text('Not set', style: TextStyle(color: Colors.grey)),
+                  ),
+                  IconButton(
+                    icon: Icon(hasSlot ? Iconsax.edit : Iconsax.add_circle),
+                    onPressed: () => _editDayTimeSlot(dayOfWeek, dayNames[index]),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ),
     );
+  }
+
+  Future<void> _editDayTimeSlot(int dayOfWeek, String dayName) async {
+    TimeOfDay? startTime;
+    TimeOfDay? endTime;
+    
+    if (_timeSlots.containsKey(dayOfWeek)) {
+      final slot = _timeSlots[dayOfWeek]!;
+      final startDT = DateHelper.parseTime(slot.startTime);
+      final endDT = DateHelper.parseTime(slot.endTime);
+      if (startDT != null) startTime = TimeOfDay.fromDateTime(startDT);
+      if (endDT != null) endTime = TimeOfDay.fromDateTime(endDT);
+    }
+    
+    // Show dialog untuk pick time
+    final result = await showDialog<Map<String, TimeOfDay>>(
+      context: context,
+      builder: (context) => _TimeSlotDialog(
+        dayName: dayName,
+        initialStart: startTime,
+        initialEnd: endTime,
+      ),
+    );
+    
+    if (result != null) {
+      setState(() {
+        _timeSlots[dayOfWeek] = TimeSlot(
+          startTime: result['start']!.format(context),
+          endTime: result['end']!.format(context),
+        );
+      });
+    }
   }
 
   @override
@@ -222,6 +446,56 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
                 ),
               ],
             ),
+            SizedBox(height: AppSizes.lg),
+            _buildSectionTitle('Active Period (Optional)'),
+            SizedBox(height: AppSizes.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDateField(
+                    controller: _startDateController,
+                    label: 'Start Date',
+                    icon: Iconsax.calendar_1,
+                    onTap: () => _pickDate(true),
+                    onClear: () {
+                      setState(() {
+                        _startDate = null;
+                        _startDateController.clear();
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(width: AppSizes.md),
+                Expanded(
+                  child: _buildDateField(
+                    controller: _endDateController,
+                    label: 'End Date',
+                    icon: Iconsax.calendar_2,
+                    onTap: () => _pickDate(false),
+                    onClear: () {
+                      setState(() {
+                        _endDate = null;
+                        _endDateController.clear();
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: AppSizes.md),
+            _buildSwitchTile(
+              icon: Iconsax.clock_1,
+              title: 'Bootcamp Mode',
+              subtitle: 'Different time for each day',
+              value: _isBootcampMode,
+              onChanged: (value) {
+                setState(() => _isBootcampMode = value);
+              },
+            ),
+            if (_isBootcampMode) ...[
+              SizedBox(height: AppSizes.md),
+              _buildBootcampTimeEditor(),
+            ],
             SizedBox(height: AppSizes.lg),
             _buildSectionTitle('Repeat Days'),
             SizedBox(height: AppSizes.sm),
@@ -435,6 +709,78 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
     return Text(
       title,
       style: AppTextStyles.headlineMedium,
+    );
+  }
+}
+
+class _TimeSlotDialog extends StatefulWidget {
+  final String dayName;
+  final TimeOfDay? initialStart;
+  final TimeOfDay? initialEnd;
+
+  const _TimeSlotDialog({
+    required this.dayName,
+    this.initialStart,
+    this.initialEnd,
+  });
+
+  @override
+  State<_TimeSlotDialog> createState() => _TimeSlotDialogState();
+}
+
+class _TimeSlotDialogState extends State<_TimeSlotDialog> {
+  late TimeOfDay _startTime;
+  late TimeOfDay _endTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTime = widget.initialStart ?? TimeOfDay.now();
+    _endTime = widget.initialEnd ?? TimeOfDay.now();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Set Time for ${widget.dayName}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: const Text('Start Time'),
+            subtitle: Text(_startTime.format(context)),
+            trailing: const Icon(Iconsax.clock),
+            onTap: () async {
+              final time = await showTimePicker(context: context, initialTime: _startTime);
+              if (time != null) setState(() => _startTime = time);
+            },
+          ),
+          ListTile(
+            title: const Text('End Time'),
+            subtitle: Text(_endTime.format(context)),
+            trailing: const Icon(Iconsax.clock),
+            onTap: () async {
+              final time = await showTimePicker(context: context, initialTime: _endTime);
+              if (time != null) setState(() => _endTime = time);
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context, {
+              'start': _startTime,
+              'end': _endTime,
+            });
+          },
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 }

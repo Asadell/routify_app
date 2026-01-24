@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:provider/provider.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:routify_app/core/utils/date_helper.dart';
 import 'package:sizer/sizer.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/schedule_provider.dart';
@@ -55,12 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: CustomAppBar(
         title: 'Daily Planner',
         subtitle: dateStr,
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Iconsax.notification),
-        //     onPressed: () {},
-        //   ),
-        // ],
+        
+        
+        
+        
+        
+        
       ),
       body: RefreshIndicator(
         onRefresh: _loadData,
@@ -365,6 +366,9 @@ class _ScheduleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheduleProvider = context.watch<ScheduleProvider>(); 
+    final isChecked = scheduleProvider.checkedSchedules[schedule.id] ?? false; 
+    
     return Container(
       padding: EdgeInsets.all(AppSizes.paddingMd),
       decoration: BoxDecoration(
@@ -374,6 +378,34 @@ class _ScheduleCard extends StatelessWidget {
       ),
       child: Row(
         children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  schedule.title, 
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    decoration: isChecked ? TextDecoration.lineThrough : null, 
+                    color: isChecked ? AppColors.textSecondary : AppColors.textPrimary, 
+                  ),
+                ),
+                SizedBox(height: AppSizes.xs),
+                Row(
+                  children: [
+                    Icon(Iconsax.clock, size: AppSizes.iconXs, color: AppColors.textSecondary),
+                    SizedBox(width: AppSizes.xs),
+                    Text(
+                      schedule.hasCustomTimeSlots() 
+                          ? schedule.getTimeForDay(DateHelper.getDayOfWeek(DateTime.now()))
+                          : '${schedule.startTime} - ${schedule.endTime}',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: AppSizes.md),
           Container(
             width: 4,
             height: 50,
@@ -383,26 +415,16 @@ class _ScheduleCard extends StatelessWidget {
             ),
           ),
           SizedBox(width: AppSizes.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(schedule.title, style: AppTextStyles.headlineMedium),
-                SizedBox(height: AppSizes.xs),
-                Row(
-                  children: [
-                    Icon(Iconsax.clock, size: AppSizes.iconXs, color: AppColors.textSecondary),
-                    SizedBox(width: AppSizes.xs),
-                    Text(
-                      '${schedule.startTime} - ${schedule.endTime}',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
+          Checkbox(
+            value: isChecked,
+            onChanged: (_) {
+              scheduleProvider.toggleScheduleCheckin(schedule.id!);
+            },
+            activeColor: AppColors.success,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
             ),
           ),
-          Icon(Iconsax.arrow_right_3, color: AppColors.iconSecondary),
         ],
       ),
     );
@@ -428,7 +450,7 @@ class _TaskCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Left colored indicator bar
+          
           Container(
             width: 4,
             decoration: BoxDecoration(
@@ -439,7 +461,7 @@ class _TaskCard extends StatelessWidget {
               ),
             ),
           ),
-          // Main content
+          
           Expanded(
             child: Padding(
               padding: EdgeInsets.all(AppSizes.paddingMd),

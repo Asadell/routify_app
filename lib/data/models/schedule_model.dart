@@ -14,8 +14,11 @@ class ScheduleModel {
   final bool useAll7Days;
   final bool enableNotification;
   final bool isActive;
+  final DateTime? startDate; 
+  final DateTime? endDate;   
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final Map<int, TimeSlot>? timeSlots; 
 
   ScheduleModel({
     this.id,
@@ -33,8 +36,11 @@ class ScheduleModel {
     this.useAll7Days = false,
     this.enableNotification = false,
     this.isActive = true,
+    this.startDate, 
+    this.endDate,   
     this.createdAt,
     this.updatedAt,
+    this.timeSlots, 
   });
 
   Map<String, dynamic> toMap() {
@@ -54,6 +60,8 @@ class ScheduleModel {
       'use_all_7_days': useAll7Days ? 1 : 0,
       'enable_notification': enableNotification ? 1 : 0,
       'is_active': isActive ? 1 : 0,
+      'start_date': startDate?.toIso8601String(), 
+      'end_date': endDate?.toIso8601String(),     
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
@@ -76,6 +84,12 @@ class ScheduleModel {
       useAll7Days: (map['use_all_7_days'] as int) == 1,
       enableNotification: (map['enable_notification'] as int) == 1,
       isActive: (map['is_active'] as int) == 1,
+      startDate: map['start_date'] != null  
+          ? DateTime.parse(map['start_date'] as String)
+          : null,
+      endDate: map['end_date'] != null      
+          ? DateTime.parse(map['end_date'] as String)
+          : null,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
           : null,
@@ -101,8 +115,11 @@ class ScheduleModel {
     bool? useAll7Days,
     bool? enableNotification,
     bool? isActive,
+    DateTime? startDate,  
+    DateTime? endDate,    
     DateTime? createdAt,
     DateTime? updatedAt,
+    Map<int, TimeSlot>? timeSlots, 
   }) {
     return ScheduleModel(
       id: id ?? this.id,
@@ -120,8 +137,11 @@ class ScheduleModel {
       useAll7Days: useAll7Days ?? this.useAll7Days,
       enableNotification: enableNotification ?? this.enableNotification,
       isActive: isActive ?? this.isActive,
+      startDate: startDate ?? this.startDate,     
+      endDate: endDate ?? this.endDate,           
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      timeSlots: timeSlots ?? this.timeSlots,     
     );
   }
 
@@ -145,5 +165,61 @@ class ScheduleModel {
       default:
         return false;
     }
+  }
+
+  bool isActiveOnDate(DateTime date) {
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    
+    
+    if (startDate != null) {
+      final startOnly = DateTime(startDate!.year, startDate!.month, startDate!.day);
+      if (dateOnly.isBefore(startOnly)) return false;
+    }
+    
+    
+    if (endDate != null) {
+      final endOnly = DateTime(endDate!.year, endDate!.month, endDate!.day);
+      if (dateOnly.isAfter(endOnly)) return false;
+    }
+    
+    return true;
+  }
+
+  String getTimeForDay(int dayOfWeek) {
+    if (timeSlots != null && timeSlots!.containsKey(dayOfWeek)) {
+      final slot = timeSlots![dayOfWeek]!;
+      return '${slot.startTime} - ${slot.endTime}';
+    }
+    return '$startTime - $endTime';
+  }
+
+  bool hasCustomTimeSlots() {
+    return timeSlots != null && timeSlots!.isNotEmpty;
+  }
+}
+
+class TimeSlot {
+  final String startTime;
+  final String endTime;
+
+  TimeSlot({
+    required this.startTime,
+    required this.endTime,
+  });
+
+  Map<String, dynamic> toMap(int scheduleId, int dayOfWeek) {
+    return {
+      'schedule_id': scheduleId,
+      'day_of_week': dayOfWeek,
+      'start_time': startTime,
+      'end_time': endTime,
+    };
+  }
+
+  factory TimeSlot.fromMap(Map<String, dynamic> map) {
+    return TimeSlot(
+      startTime: map['start_time'] as String,
+      endTime: map['end_time'] as String,
+    );
   }
 }

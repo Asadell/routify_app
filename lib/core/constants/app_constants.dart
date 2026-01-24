@@ -1,10 +1,12 @@
 class AppConstants {
   // Database
-  static const String dbName = 'daily_plannervv1.db';
+  static const String dbName = 'daily_plannervv2.db';
   static const int dbVersion = 1;
 
   // Tables
   static const String tableSchedules = 'schedules';
+  static const String tableScheduleTimeSlots = 'schedule_time_slots';
+  static const String tableScheduleCheckins = 'schedule_checkins';
   static const String tableTasks = 'tasks';
   static const String tableWorkouts = 'workouts';
   static const String tableExercises = 'exercises';

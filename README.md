@@ -1,201 +1,214 @@
 # 📱 Daily Planner + Workout Tracker
 
-A modern, feature-rich daily planner and workout tracking application built with Flutter. This app helps you organize your daily schedules, manage tasks, and track your workout routines - all in one place.
+Aplikasi pengelola jadwal harian dan pelacak workout yang modern dan kaya fitur, dibangun dengan Flutter. Aplikasi ini membantu Anda mengatur jadwal harian, mengelola tugas, dan melacak rutinitas workout - semua dalam satu tempat.
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.0+-blue.svg)
 ![Dart](https://img.shields.io/badge/Dart-3.0+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-## ✨ Features
+## ✨ Fitur
 
-### 📅 Schedule Management
-- Create and manage daily schedules with specific time slots
-- Set recurring schedules for specific days of the week
-- Toggle schedules on/off without deleting them
-- Get notifications for upcoming scheduled events
-- View all schedules for today at a glance
+### 📅 Manajemen Jadwal
+- **Buat dan kelola jadwal harian** dengan slot waktu spesifik
+- **Auto-fill waktu selesai**: Waktu selesai otomatis terisi +30 menit dari waktu mulai (maksimal 23:59)
+- **Atur jadwal berulang** untuk hari-hari tertentu dalam seminggu
+- **Mode Bootcamp**: Atur waktu berbeda untuk setiap hari
+  - Contoh: Senin 17:00-19:00, Rabu 18:30-20:30, Jumat 16:00-18:00
+  - Satu jadwal dapat memiliki jam berbeda per hari
+- **Periode aktif opsional**: Tentukan rentang tanggal mulai dan berakhir jadwal
+  - Tidak diisi → aktif mulai hari ini tanpa batas waktu
+  - Isi start date saja → aktif mulai tanggal tersebut tanpa batas akhir
+  - Isi end date saja → aktif dari sekarang sampai tanggal berakhir
+  - Isi keduanya → jadwal hanya aktif di antara rentang tanggal tersebut
+  - Validasi otomatis: end date harus lebih besar dari start date
+- **Checklist harian**: Tandai jadwal yang sudah selesai hari ini
+  - Checklist otomatis reset setiap hari berganti
+  - Status checklist tersimpan per tanggal
+  - Minggu ini dicentang ≠ minggu depan
+- **Toggle aktif/nonaktif** tanpa perlu menghapus jadwal
+- **Notifikasi pengingat** untuk acara yang akan datang
+- **Lihat semua jadwal hari ini** dalam satu tampilan
 
-### ✅ Task Management
-- Create tasks with due dates and priority levels (Low, Medium, High)
-- Filter tasks by: Today, Upcoming, Completed, Priority
-- Mark tasks as complete with a simple tap
-- Get notified before task deadlines
-- Track overdue tasks automatically
+### ✅ Manajemen Tugas
+- Buat tugas dengan tanggal jatuh tempo dan tingkat prioritas (Rendah, Sedang, Tinggi)
+- Filter tugas berdasarkan: Hari Ini, Mendatang, Selesai, Prioritas
+- Tandai tugas sebagai selesai dengan satu ketukan
+- Dapatkan notifikasi sebelum tenggat tugas
+- Lacak tugas yang terlambat secara otomatis
 
-### 💪 Workout Tracking
-- Plan weekly workout routines for each day
-- Create custom workouts with multiple exercises
-- Track exercise details: sets, reps, duration, weight
-- Log completed workouts with actual duration and notes
-- View weekly and monthly workout statistics
-- Monitor workout completion with visual indicators
-- Access complete workout history
+### 💪 Pelacakan Workout
+- Rencanakan rutinitas workout mingguan untuk setiap hari
+- Buat workout kustom dengan berbagai latihan
+- Lacak detail latihan: set, repetisi, durasi, beban
+- Catat workout yang selesai dengan durasi aktual dan catatan
+- Lihat statistik workout mingguan dan bulanan
+- Pantau penyelesaian workout dengan indikator visual
+- Akses riwayat workout lengkap
 
-### 🏠 Unified Home Dashboard
-- See all today's activities in one place
-- Filter view by Schedule, Task, or Workout
-- Quick access to create new entries
-- View key statistics and progress
+### 🏠 Dashboard Beranda Terpadu
+- Lihat semua aktivitas hari ini dalam satu tempat
+- Filter tampilan berdasarkan Jadwal, Tugas, atau Workout
+- Akses cepat untuk membuat entri baru
+- Lihat statistik kunci dan progres
 
-## 📸 Screenshots
+## 📸 Screenshot
 
-### Home Screen
+### Layar Beranda
 <img src="assets/screenshots/home_screen.jpeg" alt="Home Screen" width="80%"/>
 
-*Main dashboard showing today's schedules, tasks, and workouts*
+*Dashboard utama menampilkan jadwal, tugas, dan workout hari ini*
 
-### Schedule Management
+### Manajemen Jadwal
 <img src="assets/screenshots/schedule_screen.jpeg" alt="Schedule Screen" width="80%"/>
 
-*Manage your daily schedules with recurring options*
+*Kelola jadwal harian Anda dengan opsi berulang*
 
-### Task Management
+### Manajemen Tugas
 <img src="assets/screenshots/task_screen.jpeg" alt="Task Screen" width="80%"/>
 
-*Organize tasks by priority and due date*
+*Atur tugas berdasarkan prioritas dan tanggal jatuh tempo*
 
-### Workout Tracking
+### Pelacakan Workout
 <img src="assets/screenshots/workout_screen.jpeg" alt="Workout Screen" width="80%"/>
 
-*Weekly workout planner with status indicators*
+*Perencana workout mingguan dengan indikator status*
 
-### Workout Session
+### Sesi Workout
 <img src="assets/screenshots/workout_session_screen.jpeg" alt="Workout Session" width="80%"/>
 <img src="assets/screenshots/workout_session2_screen.jpeg" alt="Workout Session 2" width="80%"/>
 
-*Complete your workouts step-by-step with live tracking*
+*Selesaikan workout Anda langkah demi langkah dengan pelacakan langsung*
 
-### Workout History
+### Riwayat Workout
 <img src="assets/screenshots/workout_history_screen.jpeg" alt="Workout History" width="80%"/>
 
-*Track your workout progress over time*
+*Lacak progres workout Anda dari waktu ke waktu*
 
-
-## 🏗️ Architecture
+## 🏗️ Arsitektur
 
 <pre>
 lib/
 ├── core/
-│   ├── constants/       # App-wide constants
-│   └── utils/          # Helper utilities
+│   ├── constants/       # Konstanta aplikasi
+│   └── utils/          # Utilitas pembantu
 ├── data/
-│   ├── models/         # Data models
-│   ├── repositories/   # Data layer logic
-│   └── services/       # Database & Notification services
-├── providers/          # State management (Provider pattern)
+│   ├── models/         # Model data
+│   ├── repositories/   # Logika layer data
+│   └── services/       # Layanan Database & Notifikasi
+├── providers/          # Manajemen state (pola Provider)
 └── ui/
-    ├── routes/         # Navigation (AutoRoute)
-    ├── screens/        # App screens
-    ├── widgets/        # Reusable UI components
-    └── theme/          # App theming
+    ├── routes/         # Navigasi (AutoRoute)
+    ├── screens/        # Layar aplikasi
+    ├── widgets/        # Komponen UI yang dapat digunakan kembali
+    └── theme/          # Tema aplikasi
 </pre>
 
-### Key Technologies
+### Teknologi Utama
 
-- **State Management:** Provider
-- **Navigation:** AutoRoute
-- **Local Database:** SQLite (sqflite)
-- **Notifications:** flutter_local_notifications
-- **Architecture:** MVVM with Repository pattern
+- **Manajemen State:** Provider
+- **Navigasi:** AutoRoute
+- **Database Lokal:** SQLite (sqflite)
+- **Notifikasi:** flutter_local_notifications
+- **Arsitektur:** MVVM dengan pola Repository
 
-## 🚀 Getting Started
+## 🚀 Memulai
 
-### Prerequisites
+### Prasyarat
 
-- Flutter SDK (3.0 or higher)
-- Dart SDK (3.0 or higher)
-- Android Studio / VS Code with Flutter extensions
-- Android device or emulator (Android 6.0+)
-- iOS device or simulator (iOS 12.0+) [optional]
+- Flutter SDK (3.0 atau lebih tinggi)
+- Dart SDK (3.0 atau lebih tinggi)
+- Android Studio / VS Code dengan ekstensi Flutter
+- Perangkat Android atau emulator (Android 6.0+)
+- Perangkat iOS atau simulator (iOS 12.0+) [opsional]
 
-### Installation
+### Instalasi
 
-1. **Clone the repository**
+1. **Clone repositori**
 ```bash
-   git clone https://github.com/Asadell/routify_app.git
-   cd routify_app
+git clone https://github.com/Asadell/routify_app.git
+cd routify_app
 ```
 
-2. **Install dependencies**
+2. **Install dependensi**
 ```bash
-   flutter pub get
+flutter pub get
 ```
 
-3. **Generate route files** (if using AutoRoute)
+3. **Generate file route** (jika menggunakan AutoRoute)
 ```bash
-   dart run build_runner build -d
+dart run build_runner build -d
 ```
 
-4. **Run the app**
+4. **Jalankan aplikasi**
 ```bash
-   flutter run
+flutter run
 ```
 
-## 📦 Dependencies
+## 📦 Dependensi
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
-  change_app_package_name: ^1.5.0               # Change Android/iOS app package name easily
-  auto_route: ^11.1.0                           # Navigation & route management
-  flutter_animate: ^4.5.2                       # Easy & beautiful animations
-  intl: ^0.20.2                                 # Date, number & localization formatting
-  sqflite: ^2.4.2                               # Local SQLite database
-  path: ^1.9.1                                  # File path utilities (used with SQLite etc.)
-  provider: ^6.1.5+1                            # State management
-  flutter_local_notifications: ^19.5.0          # Local notifications (Android & iOS)
-  timezone: ^0.10.1                             # Timezone support for scheduling notifications
-  sizer: ^3.1.3                                 # Responsive UI based on screen size
-  iconsax_flutter: ^1.0.1                       # Iconsax icon pack
-  flutter_launcher_icons: ^0.14.4               # Generate app launcher icons
+  change_app_package_name: ^1.5.0               # Ubah nama paket aplikasi Android/iOS dengan mudah
+  auto_route: ^11.1.0                           # Navigasi & manajemen route
+  flutter_animate: ^4.5.2                       # Animasi mudah & indah
+  intl: ^0.20.2                                 # Format tanggal, angka & lokalisasi
+  sqflite: ^2.4.2                               # Database SQLite lokal
+  path: ^1.9.1                                  # Utilitas path file (digunakan dengan SQLite dll.)
+  provider: ^6.1.5+1                            # Manajemen state
+  flutter_local_notifications: ^19.5.0          # Notifikasi lokal (Android & iOS)
+  timezone: ^0.10.1                             # Dukungan zona waktu untuk penjadwalan notifikasi
+  sizer: ^3.1.3                                 # UI responsif berdasarkan ukuran layar
+  iconsax_flutter: ^1.0.1                       # Paket ikon Iconsax
+  flutter_launcher_icons: ^0.14.4               # Generate ikon peluncur aplikasi
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0                         # Recommended lint rules & best practices
-  build_runner: ^2.10.4                         # Code generator runner (for auto_route, etc.)
-  auto_route_generator: ^10.4.0                 # Code generator for AutoRoute
+  flutter_lints: ^6.0.0                         # Aturan lint & praktik terbaik yang direkomendasikan
+  build_runner: ^2.10.4                         # Runner generator kode (untuk auto_route, dll.)
+  auto_route_generator: ^10.4.0                 # Generator kode untuk AutoRoute
 ```
 
-## 🎨 Design Philosophy
+## 🎨 Filosofi Desain
 
-This app follows modern mobile design principles:
+Aplikasi ini mengikuti prinsip desain mobile modern:
 
-- **Clean & Minimal:** Distraction-free interface focused on functionality
-- **Intuitive Navigation:** Bottom navigation for quick access to main features
-- **Visual Feedback:** Clear status indicators and interactive elements
-- **Responsive Design:** Adapts to different screen sizes
-- **Consistent Theming:** Unified color scheme and typography throughout
+- **Bersih & Minimal:** Antarmuka bebas gangguan yang fokus pada fungsi
+- **Navigasi Intuitif:** Navigasi bawah untuk akses cepat ke fitur utama
+- **Umpan Balik Visual:** Indikator status yang jelas dan elemen interaktif
+- **Desain Responsif:** Menyesuaikan dengan berbagai ukuran layar
+- **Tema Konsisten:** Skema warna dan tipografi yang terpadu di seluruh aplikasi
 
-### Color Scheme
+### Skema Warna
 
-- **Primary:** Blue (#2196F3) - Trust and productivity
-- **Secondary:** Orange (#FF9800) - Energy and motivation
-- **Success:** Green (#4CAF50) - Completed tasks
-- **Error:** Red (#F44336) - Overdue items
-- **Warning:** Amber (#FFC107) - Pending items
+- **Primary:** Biru (#2196F3) - Kepercayaan dan produktivitas
+- **Secondary:** Oranye (#FF9800) - Energi dan motivasi
+- **Success:** Hijau (#4CAF50) - Tugas selesai
+- **Error:** Merah (#F44336) - Item terlambat
+- **Warning:** Amber (#FFC107) - Item tertunda
 
-## 📱 Platform Support
+## 📱 Dukungan Platform
 
 | Platform | Status |
 |----------|--------|
-| Android  | ✅ Supported |
-| iOS      | ❌ Not Supported |
-| Web      | ❌ Not Supported |
-| Desktop  | ❌ Not Supported |
+| Android  | ✅ Didukung |
+| iOS      | ❌ Tidak Didukung |
+| Web      | ❌ Tidak Didukung |
+| Desktop  | ❌ Tidak Didukung |
 
-## 🔔 Notification Permissions
+## 🔔 Izin Notifikasi
 
-The app requires notification permissions to alert you about:
-- Upcoming scheduled events
-- Task deadlines
-- Workout reminders
+Aplikasi memerlukan izin notifikasi untuk memberi tahu Anda tentang:
+- Acara terjadwal yang akan datang
+- Tenggat tugas
+- Pengingat workout
 
-Permissions are requested on first launch and can be managed in app settings.
+Izin diminta saat peluncuran pertama dan dapat dikelola di pengaturan aplikasi.
 
-## 🗃️ Database Schema
+## 🗃️ Skema Database
 
-### Schedules Table
+### Tabel Schedules
 ```sql
 CREATE TABLE schedules (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -213,12 +226,39 @@ CREATE TABLE schedules (
   use_all_7_days INTEGER DEFAULT 0,
   enable_notification INTEGER DEFAULT 0,
   is_active INTEGER DEFAULT 1,
+  start_date TEXT,
+  end_date TEXT,
   created_at TEXT,
   updated_at TEXT
 );
 ```
 
-### Tasks Table
+### Tabel Schedule Time Slots (untuk Mode Bootcamp)
+```sql
+CREATE TABLE schedule_time_slots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  schedule_id INTEGER NOT NULL,
+  day_of_week INTEGER NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  FOREIGN KEY(schedule_id) REFERENCES schedules(id) ON DELETE CASCADE,
+  UNIQUE(schedule_id, day_of_week)
+);
+```
+
+### Tabel Schedule Checkins (untuk Checklist Harian)
+```sql
+CREATE TABLE schedule_checkins (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  schedule_id INTEGER NOT NULL,
+  check_date TEXT NOT NULL,
+  checked_at TEXT NOT NULL,
+  FOREIGN KEY(schedule_id) REFERENCES schedules(id) ON DELETE CASCADE,
+  UNIQUE(schedule_id, check_date)
+);
+```
+
+### Tabel Tasks
 ```sql
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -233,7 +273,7 @@ CREATE TABLE tasks (
 );
 ```
 
-### Workouts Table
+### Tabel Workouts
 ```sql
 CREATE TABLE workouts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -244,7 +284,18 @@ CREATE TABLE workouts (
 );
 ```
 
-### Exercises Table
+### Tabel Workout Days
+```sql
+CREATE TABLE workout_days (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workout_id INTEGER NOT NULL,
+  day_of_week INTEGER NOT NULL,
+  FOREIGN KEY(workout_id) REFERENCES workouts(id) ON DELETE CASCADE,
+  UNIQUE(workout_id, day_of_week)
+);
+```
+
+### Tabel Exercises
 ```sql
 CREATE TABLE exercises (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -258,7 +309,7 @@ CREATE TABLE exercises (
 );
 ```
 
-### Workout History Table
+### Tabel Workout History
 ```sql
 CREATE TABLE workout_history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -269,39 +320,39 @@ CREATE TABLE workout_history (
 );
 ```
 
-## 🤝 Contributing
+## 🤝 Berkontribusi
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Kontribusi sangat diterima! Silakan ajukan Pull Request.
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork proyek ini
+2. Buat branch fitur Anda (`git checkout -b feature/FiturKeren`)
+3. Commit perubahan Anda (`git commit -m 'Tambah FiturKeren'`)
+4. Push ke branch (`git push origin feature/FiturKeren`)
+5. Buka Pull Request
 
-## 📝 License
+## 📝 Lisensi
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Proyek ini dilisensikan di bawah Lisensi MIT - lihat file [LICENSE](LICENSE) untuk detail.
 
-## 👨‍💻 Author
+## 👨‍💻 Pembuat
 
-**Your Name**
+**Nama Anda**
 - GitHub: [@Asadell](https://github.com/Asadell)
 - Email: asadell@uhuy.com
 
-## 🙏 Acknowledgments
+## 🙏 Penghargaan
 
-- Flutter team for the amazing framework
-- Material Design for design guidelines
-- All contributors who help improve this project
+- Tim Flutter untuk framework yang luar biasa
+- Material Design untuk panduan desain
+- Semua kontributor yang membantu meningkatkan proyek ini
 
-## 📞 Support
+## 📞 Dukungan
 
-If you have any questions or need help, please:
-- Open an issue on GitHub
-- Contact via email
-- Check the [Wiki](https://github.com/Asadell/routify_app/wiki) for documentation
+Jika Anda memiliki pertanyaan atau memerlukan bantuan, silakan:
+- Buka issue di GitHub
+- Hubungi melalui email
+- Periksa [Wiki](https://github.com/Asadell/routify_app/wiki) untuk dokumentasi
 
 ---
 
-Made with ❤️ using Flutter
+Dibuat dengan ❤️ menggunakan Flutter

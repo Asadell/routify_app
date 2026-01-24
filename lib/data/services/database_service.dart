@@ -26,7 +26,6 @@ class DatabaseService {
   }
 
   Future<void> _createDB(Database db, int version) async {
-    // Schedules table
     await db.execute('''
       CREATE TABLE ${AppConstants.tableSchedules} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,12 +43,37 @@ class DatabaseService {
         use_all_7_days INTEGER DEFAULT 0,
         enable_notification INTEGER DEFAULT 0,
         is_active INTEGER DEFAULT 1,
+        start_date TEXT,
+        end_date TEXT,
         created_at TEXT,
         updated_at TEXT
       )
     ''');
 
-    // Tasks table
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableScheduleTimeSlots} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        schedule_id INTEGER NOT NULL,
+        day_of_week INTEGER NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL,
+        FOREIGN KEY(schedule_id) REFERENCES ${AppConstants.tableSchedules}(id) ON DELETE CASCADE,
+        UNIQUE(schedule_id, day_of_week)
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE ${AppConstants.tableScheduleCheckins} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        schedule_id INTEGER NOT NULL,
+        check_date TEXT NOT NULL,
+        checked_at TEXT NOT NULL,
+        FOREIGN KEY(schedule_id) REFERENCES ${AppConstants.tableSchedules}(id) ON DELETE CASCADE,
+        UNIQUE(schedule_id, check_date)
+      )
+    ''');
+
+    // =========================
     await db.execute('''
       CREATE TABLE ${AppConstants.tableTasks} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +88,6 @@ class DatabaseService {
       )
     ''');
 
-    // Workouts table
     await db.execute('''
       CREATE TABLE ${AppConstants.tableWorkouts} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,7 +108,9 @@ class DatabaseService {
       )
     ''');
 
-    // Exercises table
+    // =========================
+    // EXERCISES
+    // =========================
     await db.execute('''
       CREATE TABLE ${AppConstants.tableExercises} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +124,6 @@ class DatabaseService {
       )
     ''');
 
-    // Workout history table
     await db.execute('''
       CREATE TABLE ${AppConstants.tableWorkoutHistory} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,7 +140,6 @@ class DatabaseService {
     await db.close();
   }
 
-  // Generic CRUD operations
   Future<int> insert(String table, Map<String, dynamic> row) async {
     final db = await instance.database;
     return await db.insert(table, row);

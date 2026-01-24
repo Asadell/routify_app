@@ -26,9 +26,18 @@ class ScheduleRepository {
     final allSchedules = await getActiveSchedules();
     final dayOfWeek = DateHelper.getDayOfWeek(date);
 
-    return allSchedules.where((schedule) {
-      return schedule.isActiveOnDay(dayOfWeek);
-    }).toList();
+    final validSchedules = <ScheduleModel>[];
+    
+    for (final schedule in allSchedules) {
+      if (!schedule.isActiveOnDate(date)) continue;
+      
+      if (!schedule.isActiveOnDay(dayOfWeek)) continue;
+      
+      final scheduleWithSlots = await _loadTimeSlots(schedule);
+      validSchedules.add(scheduleWithSlots);
+    }
+
+    return validSchedules;
   }
 
   Future<List<ScheduleModel>> getTodaySchedules() async {
@@ -57,7 +66,6 @@ class ScheduleRepository {
       scheduleWithDates.toMap(),
     );
 
-    // Schedule notifications if enabled
     if (scheduleWithDates.enableNotification) {
       await _scheduleNotifications(scheduleWithDates.copyWith(id: id));
     }
@@ -68,7 +76,6 @@ class ScheduleRepository {
   Future<int> updateSchedule(ScheduleModel schedule) async {
     final updatedSchedule = schedule.copyWith(updatedAt: DateTime.now());
 
-    // Cancel existing notifications
     if (schedule.id != null) {
       await _notificationService.cancelNotification(schedule.id!);
     }
@@ -80,7 +87,6 @@ class ScheduleRepository {
       [schedule.id],
     );
 
-    // Reschedule notifications if enabled
     if (updatedSchedule.enableNotification && updatedSchedule.isActive) {
       await _scheduleNotifications(updatedSchedule);
     }
@@ -100,7 +106,6 @@ class ScheduleRepository {
   Future<void> _scheduleNotifications(ScheduleModel schedule) async {
     if (schedule.id == null) return;
 
-    // Parse start time
     final startTime = DateHelper.parseTime(schedule.startTime);
     if (startTime == null) return;
 
@@ -113,7 +118,6 @@ class ScheduleRepository {
       startTime.minute,
     );
 
-    // Only schedule if time is in the future today
     if (scheduledTime.isAfter(now)) {
       final dayOfWeek = DateHelper.getDayOfWeek(scheduledTime);
       if (schedule.isActiveOnDay(dayOfWeek)) {
@@ -135,5 +139,84 @@ class ScheduleRepository {
       AppConstants.tableSchedules,
       {'is_active': 1},
     );
+  }
+
+  Future<ScheduleModel> _loadTimeSlots(ScheduleModel schedule) async {
+    if (schedule.id == null) return schedule;
+    
+    final db = await _dbService.database;
+    final maps = await db.query(
+      AppConstants.tableScheduleTimeSlots,
+      where: 'schedule_id = ?',
+      whereArgs: [schedule.id],
+    );
+    
+    if (maps.isEmpty) return schedule;
+    
+    final timeSlots = <int, TimeSlot>{};
+    for (final map in maps) {
+      final dayOfWeek = map['day_of_week'] as int;
+      timeSlots[dayOfWeek] = TimeSlot.fromMap(map);
+    }
+    
+    return schedule.copyWith(timeSlots: timeSlots);
+  }
+
+  Future<void> saveTimeSlots(int scheduleId, Map<int, TimeSlot> timeSlots) async {
+    final db = await _dbService.database;
+    
+    await db.delete(
+      AppConstants.tableScheduleTimeSlots,
+      where: 'schedule_id = ?',
+      whereArgs: [scheduleId],
+    );
+    
+    for (final entry in timeSlots.entries) {
+      await db.insert(
+        AppConstants.tableScheduleTimeSlots,
+        entry.value.toMap(scheduleId, entry.key),
+      );
+    }
+  }
+
+  Future<bool> isCheckedToday(int scheduleId, DateTime date) async {
+    final dateStr = DateHelper.formatDate(date);
+    final db = await _dbService.database;
+    
+    final maps = await db.query(
+      AppConstants.tableScheduleCheckins,
+      where: 'schedule_id = ? AND check_date = ?',
+      whereArgs: [scheduleId, dateStr],
+    );
+    
+    return maps.isNotEmpty;
+  }
+
+  Future<void> toggleCheckin(int scheduleId, DateTime date) async {
+    final dateStr = DateHelper.formatDate(date);
+    final db = await _dbService.database;
+    
+    final existing = await db.query(
+      AppConstants.tableScheduleCheckins,
+      where: 'schedule_id = ? AND check_date = ?',
+      whereArgs: [scheduleId, dateStr],
+    );
+    
+    if (existing.isNotEmpty) {
+      await db.delete(
+        AppConstants.tableScheduleCheckins,
+        where: 'schedule_id = ? AND check_date = ?',
+        whereArgs: [scheduleId, dateStr],
+      );
+    } else {
+      await db.insert(
+        AppConstants.tableScheduleCheckins,
+        {
+          'schedule_id': scheduleId,
+          'check_date': dateStr,
+          'checked_at': DateTime.now().toIso8601String(),
+        },
+      );
+    }
   }
 }
