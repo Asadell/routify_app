@@ -67,19 +67,19 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
       _titleController = TextEditingController(text: schedule.title);
       _descriptionController = TextEditingController(text: schedule.description ?? '');
       
-      final startDateTime = DateHelper.parseTime(schedule.startTime);
-      final endDateTime = DateHelper.parseTime(schedule.endTime);
+      // Parse time dari database (format bisa "HH:mm" atau "h:mm AM/PM")
+      _startTime = _parseTimeString(schedule.startTime);
+      _endTime = _parseTimeString(schedule.endTime);
       
-      if (startDateTime != null) {
-        _startTime = TimeOfDay.fromDateTime(startDateTime);
-        _startTimeController = TextEditingController(text: schedule.startTime);
+      // Set controller dengan format yang user-friendly
+      if (_startTime != null) {
+        _startTimeController = TextEditingController(text: _formatTimeOfDay(_startTime!));
       } else {
         _startTimeController = TextEditingController();
       }
       
-      if (endDateTime != null) {
-        _endTime = TimeOfDay.fromDateTime(endDateTime);
-        _endTimeController = TextEditingController(text: schedule.endTime);
+      if (_endTime != null) {
+        _endTimeController = TextEditingController(text: _formatTimeOfDay(_endTime!));
       } else {
         _endTimeController = TextEditingController();
       }
@@ -128,6 +128,54 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
     super.dispose();
   }
 
+  // Helper method untuk parse time string dari berbagai format
+  TimeOfDay? _parseTimeString(String? timeString) {
+    if (timeString == null || timeString.isEmpty) return null;
+    
+    try {
+      // Coba parse format "HH:mm" atau "H:mm"
+      if (timeString.contains(':')) {
+        final parts = timeString.split(':');
+        if (parts.length == 2) {
+          // Ambil jam dan menit, handle format AM/PM jika ada
+          String hourPart = parts[0].trim();
+          String minutePart = parts[1].trim();
+          
+          // Handle format AM/PM
+          bool isPM = minutePart.toUpperCase().contains('PM');
+          bool isAM = minutePart.toUpperCase().contains('AM');
+          
+          // Bersihkan minutePart dari AM/PM
+          minutePart = minutePart.replaceAll(RegExp(r'[^0-9]'), '');
+          
+          int hour = int.parse(hourPart);
+          int minute = int.parse(minutePart);
+          
+          // Convert ke 24-hour format jika ada AM/PM
+          if (isPM && hour != 12) {
+            hour += 12;
+          } else if (isAM && hour == 12) {
+            hour = 0;
+          }
+          
+          return TimeOfDay(hour: hour, minute: minute);
+        }
+      }
+    } catch (e) {
+      print('Error parsing time: $timeString - $e');
+    }
+    
+    return null;
+  }
+
+  // Helper method untuk format TimeOfDay ke string yang user-friendly
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+
   Future<void> _pickTime(bool isStartTime) async {
     final time = await showTimePicker(
       context: context,
@@ -150,7 +198,7 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
       setState(() {
         if (isStartTime) {
           _startTime = time;
-          _startTimeController.text = time.format(context);
+          _startTimeController.text = _formatTimeOfDay(time);
           
           final now = DateTime.now();
           final startDateTime = DateTime(
@@ -169,10 +217,10 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
           }
           
           _endTime = TimeOfDay.fromDateTime(endDateTime);
-          _endTimeController.text = _endTime!.format(context);
+          _endTimeController.text = _formatTimeOfDay(_endTime!);
         } else {
           _endTime = time;
-          _endTimeController.text = time.format(context);
+          _endTimeController.text = _formatTimeOfDay(time);
         }
       });
     }
@@ -375,10 +423,8 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
     
     if (_timeSlots.containsKey(dayOfWeek)) {
       final slot = _timeSlots[dayOfWeek]!;
-      final startDT = DateHelper.parseTime(slot.startTime);
-      final endDT = DateHelper.parseTime(slot.endTime);
-      if (startDT != null) startTime = TimeOfDay.fromDateTime(startDT);
-      if (endDT != null) endTime = TimeOfDay.fromDateTime(endDT);
+      startTime = _parseTimeString(slot.startTime);
+      endTime = _parseTimeString(slot.endTime);
     }
     
     // Show dialog untuk pick time
@@ -394,8 +440,8 @@ class _ScheduleFormScreenState extends State<ScheduleFormScreen> {
     if (result != null) {
       setState(() {
         _timeSlots[dayOfWeek] = TimeSlot(
-          startTime: result['start']!.format(context),
-          endTime: result['end']!.format(context),
+          startTime: _formatTimeOfDay(result['start']!),
+          endTime: _formatTimeOfDay(result['end']!),
         );
       });
     }
